@@ -94,8 +94,7 @@ window.addEventListener('DOMContentLoaded', () => {
   /////////////////////////////////modal
 
   const modelBtns = document.querySelectorAll('[data-model]'),
-        modal = document.querySelector('.modal'),
-        modalBtnClose = document.querySelector('[data-close]');
+        modal = document.querySelector('.modal');
 
   const modalShow = (item) => {
     modal.classList.add('show');
@@ -116,11 +115,11 @@ window.addEventListener('DOMContentLoaded', () => {
     
   };
 
-  modalBtnClose.addEventListener('click',modalHide);
+  
 
   function modalHidePodlojka(e){
     const target = e.target;    
-    if(target === modal){  
+    if(target === modal || target.getAttribute('data-close') == ''){  
       modalHide();
     }
   }
@@ -218,21 +217,25 @@ window.addEventListener('DOMContentLoaded', () => {
   forms.forEach(item => sendForm(item));
 
   const messages = {
-    load : 'loading waiting...',
+    load : 'img/form/spinner.svg',
     success : 'success!!!',
     error : 'somthing wrong'
   };
 
   function sendForm(form){
-
     
     form.addEventListener('submit',function(e){
       e.preventDefault();
 
-      const div = document.createElement('div');
-      div.classList.add('status');
-      div.innerHTML = messages.load;
-      form.append(div);
+      const div = document.createElement('img');
+      div.src = messages.load;
+      div.style.cssText = `
+         display : block;
+         margin : 0 auto;
+      `;
+      //form.append(div);
+
+      form.insertAdjacentElement('afterend',div);
 
       const xml = new XMLHttpRequest();
       xml.open('POST','server.php');
@@ -250,24 +253,44 @@ window.addEventListener('DOMContentLoaded', () => {
       xml.addEventListener('load',function(e){
         if(xml.status === 200){
           console.log(xml.response);
-          div.innerHTML = messages.success;
-          setTimeout(function(){
-            div.remove();
-          },3000);
+          ShowThanksModal(messages.success);          
           form.reset();
+          div.remove();          
         }else{
-          div.innerHTML = messages.error;
+            ShowThanksModal(messages.error);
         }
   
-      });
-
-
-  
+      });  
     });
 
+  }//function sendForm(form){
+      
+    function ShowThanksModal(message){
+        const modalDialog = document.querySelector('.modal__dialog');
 
-  }
+        modalDialog.classList.add('hide');
 
+        modalShow();
+
+        const thanksModalodal = document.createElement('div');
+        thanksModalodal.classList.add('modal__dialog');
+
+        thanksModalodal.innerHTML = `
+        <div class="modal__content">
+                <div data-close class="modal__close">&times;</div>
+                <div class="modal__title">${message}</div>
+        </div>          
+        `;
+
+        document.querySelector('.modal').append(thanksModalodal);
+
+        setTimeout(function(){
+            thanksModalodal.remove();
+            modalDialog.classList.add('show');
+            modalDialog.classList.remove('hide');
+            modalHide();
+        }, 4000);
+    }
 
 
   
