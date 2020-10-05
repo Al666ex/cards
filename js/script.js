@@ -212,6 +212,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
   ///////////////////send form
 
+  const postToServer = async (url,data) => {
+    const post = await fetch(url,{
+      method : "POST",
+      headers : {
+        'Content-type' : 'application/json'
+      },
+      body : data
+    });
+
+    return await post.json();
+
+  };
+
   const forms = document.querySelectorAll('form');
   forms.forEach(item => sendForm(item));
 
@@ -241,14 +254,7 @@ window.addEventListener('DOMContentLoaded', () => {
         obj[key] = value;
       });
 
-      fetch('server.php',{
-        method : "POST",
-        headers : {
-          'Content-type' : 'application/json'
-        },
-        body : JSON.stringify(obj)
-      })
-      .then((data) => data.text())
+      postToServer('http://localhost:3000/requests',JSON.stringify(obj))      
       .then((data) => {
         console.log(data);
         ShowThanksModal(messages.success);          
@@ -291,18 +297,51 @@ window.addEventListener('DOMContentLoaded', () => {
             modalHide();
         }, 4000);
     }
+    
+    const slides = document.querySelectorAll('.offer__slide');
+    const total = document.querySelector('#total');
+    const current = document.querySelector('#current');
+    const sliderPrev = document.querySelector('.offer__slider-prev');
+    const sliderNext = document.querySelector('.offer__slider-next');        
+    let sliderIndex = 1;  
 
-    const obj = {
-      Ivan : 'person',
-      Ann : 'person',
-      cat : 'animal',
-      dog : 'animal'
-    };
+    function moveToIndex(n){
+      if(n > slides.length){
+        sliderIndex = 1;
+      }
 
-    const result = Object.entries(obj);    
-    console.log(result);
+      if(n < 1){
+        sliderIndex = slides.length;
+      }
 
-    const final = result.filter(item => (item[1] === 'person')).map(item => item[0]);
-    console.log(final);
+      slides.forEach(slide => slide.style.display = 'none');
+      slides[sliderIndex - 1].style.display = '';
+
+      total.textContent = slides.length;
+      current.textContent = sliderIndex;
+    }
+
+    moveToIndex(sliderIndex);
+
+    function moveToSlide(n){
+      moveToIndex(sliderIndex += n);
+    }
+
+    sliderNext.addEventListener('click', () => {
+      moveToSlide(+1);
+    });
+
+    sliderPrev.addEventListener('click', () => {
+      moveToSlide(-1);
+    });
+
+
+
+
+
+
+
+
+
 
 });//end window.addEventListener('DOMContentLoaded', () => {
