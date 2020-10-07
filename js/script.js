@@ -310,6 +310,9 @@ window.addEventListener('DOMContentLoaded', () => {
     let sliderIndex = 1,
         offset = 0;
 
+    total.textContent = lenthTwo(slides.length);
+    current.textContent = lenthTwo(sliderIndex);
+
         
     console.log(width);
     sliderWrapper.style.overflow = 'hidden';
@@ -319,21 +322,25 @@ window.addEventListener('DOMContentLoaded', () => {
     sliderInner.style.transition = '0.5s all';
 
     sliderNext.addEventListener('click', () => {
-      if(offset == +width.slice(0, width.length - 2) * (slides.length - 1)){
+      let step = +width.slice(0, width.length - 2)
+      if(offset ==  step * (slides.length - 1)){
         offset = 0;
       }else{
-        offset += +width.slice(0, width.length - 2);
+        offset += step;
       }
+      current.textContent = lenthTwo((offset+step) / step);
       sliderInner.style.transform = `translateX(-${offset}px)`;
 
     });
 
     sliderPrev.addEventListener('click', () => {
+      let step = +width.slice(0, width.length - 2)
       if(offset == 0){        
-        offset = +width.slice(0, width.length - 2) * (slides.length - 1)
+        offset = step * (slides.length - 1)
       }else{
-        offset -= +width.slice(0, width.length - 2);
+        offset -=step;
       }
+      current.textContent = lenthTwo((offset+step) / step);
       sliderInner.style.transform = `translateX(-${offset}px)`;
 
     });
