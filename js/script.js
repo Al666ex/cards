@@ -43,7 +43,7 @@ window.addEventListener('DOMContentLoaded', () => {
   show();
  ///////////////////////////////////////Timer
   const lenthTwo = (str) => (str < 10) ? ('0'+str) : str ;
-  const dedLine = Date.parse('2020-09-29');
+  const dedLine = Date.parse('2020-10-29');
 
   function getChangeTime(){
     let now = new Date();
@@ -183,32 +183,51 @@ window.addEventListener('DOMContentLoaded', () => {
 
     //
 
-  new newCard(
-    "img/tabs/vegy.jpg",
-    "vegy",
-    'Меню "Фитнес',
-    'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-    19,
-    '.menu .container'
-  ).render();
+  const getData = async (url) => {
+    const promise = await fetch(url);   
 
-  new newCard(
-    "img/tabs/elite.jpg",
-    "elite",
-    'Меню “Премиум”',
-    'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-    21,
-    '.menu .container'
-  ).render();  
+    if(!promise.ok){
+      throw new Error(`Could not fatch ${url} status ${promise.status}`);
+    }
 
-  new newCard(
-    "img/tabs/post.jpg",
-    "post",
-    'Меню "Постное"',
-    'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-    14,
-    '.menu .container'
-  ).render();  
+    return await promise.json();
+  };
+
+  getData('http://localhost:3000/menu')
+  .then(data => 
+    data.forEach(({img,altimg,title,descr,price}) => {
+      new newCard(img,altimg,title,descr,price,'.menu .container').render();            
+    })
+  );
+
+   
+
+  // new newCard(
+  //   "img/tabs/vegy.jpg",
+  //   "vegy",
+  //   'Меню "Фитнес',
+  //   'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+  //   19,
+  //   '.menu .container'
+  // ).render();
+
+  // new newCard(
+  //   "img/tabs/elite.jpg",
+  //   "elite",
+  //   'Меню “Премиум”',
+  //   'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+  //   21,
+  //   '.menu .container'
+  // ).render();  
+
+  // new newCard(
+  //   "img/tabs/post.jpg",
+  //   "post",
+  //   'Меню "Постное"',
+  //   'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+  //   14,
+  //   '.menu .container'
+  // ).render();  
 
   ///////////////////send form
 
@@ -297,52 +316,87 @@ window.addEventListener('DOMContentLoaded', () => {
             modalHide();
         }, 4000);
     }
+
+    const  onlyNumber = (str) => +str.replace(/\D/g,'');
     
     const slides = document.querySelectorAll('.offer__slide'),
+          slider = document.querySelector('.offer__slider'),
           total = document.querySelector('#total'),
           current = document.querySelector('#current'),
           sliderPrev = document.querySelector('.offer__slider-prev'),
           sliderNext = document.querySelector('.offer__slider-next'),
           sliderWrapper = document.querySelector('.offer__slider-wrapper'),
           sliderInner = document.querySelector('.offer_slider-inner'),
-          width = window.getComputedStyle(sliderWrapper).width;
+          width = window.getComputedStyle(sliderWrapper).width,
+          step = onlyNumber(width);
 
     let sliderIndex = 1,
         offset = 0;
 
     total.textContent = lenthTwo(slides.length);
     current.textContent = lenthTwo(sliderIndex);
-
         
     console.log(width);
     sliderWrapper.style.overflow = 'hidden';
     slides.forEach(slide => slide.style.width = width);
+
+    slider.style.position = 'relative';
+    const indicators = document.createElement('ol'),
+          dots = [];
+    indicators.classList.add('carousel-indicators');
+    slider.append(indicators);
+
+    for(let i = 0; i < slides.length; i++){
+      let li = document.createElement('li');          
+          
+      li.classList.add('dot');
+      li.setAttribute('data-slide-to',+i+1);      
+      
+      if(i === 0){
+        li.style.opacity = 1;
+      }
+
+      indicators.append(li);
+      dots.push(li);
+
+    }
+
     sliderInner.style.width = 100 * slides.length +'%';
     sliderInner.style.display = 'flex';
     sliderInner.style.transition = '0.5s all';
 
-    sliderNext.addEventListener('click', () => {
-      let step = +width.slice(0, width.length - 2)
+    function moveSlides(){
+      current.textContent = lenthTwo((offset+step) / step);
+      sliderInner.style.transform = `translateX(-${offset}px)`;
+      dots.forEach(item => item.style.opacity = '.5');
+      dots[((offset+step) / step) - 1].style.opacity = 1;      
+    }
+
+    sliderNext.addEventListener('click', () => {      
       if(offset ==  step * (slides.length - 1)){
         offset = 0;
       }else{
         offset += step;
       }
-      current.textContent = lenthTwo((offset+step) / step);
-      sliderInner.style.transform = `translateX(-${offset}px)`;
-
+      moveSlides();
     });
 
     sliderPrev.addEventListener('click', () => {
-      let step = +width.slice(0, width.length - 2)
+      
       if(offset == 0){        
-        offset = step * (slides.length - 1)
+        offset = step * (slides.length - 1);
       }else{
         offset -=step;
       }
-      current.textContent = lenthTwo((offset+step) / step);
-      sliderInner.style.transform = `translateX(-${offset}px)`;
+      moveSlides();
+    });
 
+    dots.forEach(item => {
+      item.addEventListener('click', (e) => {
+        const dot = e.target.getAttribute('data-slide-to');        
+        offset = step *  (dot - 1);
+        moveSlides();          
+      });
     });
 
 
